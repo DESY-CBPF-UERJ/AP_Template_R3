@@ -1,55 +1,61 @@
 analysis = "AP_Template_R3"
 nano_version = 'v12'
-path_0_22 = analysis+'/Datasets/Files/bkg_22/dti_0/'+nano_version+'/'
-path_1_22 = analysis+'/Datasets/Files/bkg_22/dti_1/'+nano_version+'/'
-path_0_23 = analysis+'/Datasets/Files/bkg_23/dti_0/'+nano_version+'/'
-path_1_23 = analysis+'/Datasets/Files/bkg_23/dti_1/'+nano_version+'/'
 
 #--------------------------------------------------------------------------------------------------
-# ID digits:
-# 1st-2nd = 16(2016),17(2017),18(2018)                              # Year
-# 3th-4th = 00(Data),01(MC-signal),02-13(MC-bkg),99(private sample) # Group
-# 5th-6th = 00(none),...                                            # Bkg -> Process
-# 5th-6th = 00(none),11(250_30),12(250_40),55(1250_100)             # Signal -> Signal point
-# 5th-6th = 00(none),01(A),02(B),03(C)                              # Data -> Era
-# 7th     = 0,1,2,...                                               # Data taking interval (DTI)
-
+# Production ID:
+# 00-09(Data), 10-19(MC-signal), 20-98(MC-bkg), 99(private sample)
+#
+# Data taking interval (DTI):
 # 2022 DTIs = 0(preEE), 1(postEE)
 # 2023 DTIs = 0(preBPix), 1(postBPix)
 #--------------------------------------------------------------------------------------------------
 
+paths = {}
+paths["0_22"] = analysis+'/Datasets/Files/bkg_22/dti_0/'+nano_version+'/'
+paths["1_22"] = analysis+'/Datasets/Files/bkg_22/dti_1/'+nano_version+'/'
+paths["0_23"] = analysis+'/Datasets/Files/bkg_23/dti_0/'+nano_version+'/'
+paths["1_23"] = analysis+'/Datasets/Files/bkg_23/dti_1/'+nano_version+'/'
 
-periods = ["0_22", "1_22", "0_23", "1_23"]
-paths = [path_0_22, path_1_22, path_0_23, path_1_23]
 
-for period,path in zip(periods,paths):
+# https://xsecdb-xsdb-official.app.cern.ch/
+b_ds_info = { # [DatasetName, Production ID, PROC_XSEC[pb], XSEC_UNC[pb], XSEC_Accuracy]
+"TT": [
+    ["TTtoLNu2Q",                       '23',       405.7,              0.1345,		        'NLO'],
+    ["TTto2L2Nu",                       '23',       98.04,              0.1345,             'NLO'],
+],
+
+"Zto2Nu": [
+    ["Zto2Nu_PTNuNu-40to100_1J",        '26',       929.8,	            5.481,		        'LO'],
+    ["Zto2Nu_PTNuNu-40to100_2J",        '26',       335.5,	            3.49,		        'LO'],
+    ["Zto2Nu_PTNuNu-100to200_1J",       '26',       86.38,	            0.441,		        'LO'],
+    ["Zto2Nu_PTNuNu-100to200_2J",       '26',       100.4,	            0.8555,		        'LO'],
+    ["Zto2Nu_PTNuNu-200to400_1J",       '26',       6.354,	            0.03067,		    'LO'],
+    ["Zto2Nu_PTNuNu-200to400_2J",       '26',       13.86,	            0.09802,		    'LO'],
+    ["Zto2Nu_PTNuNu-400to600_1J",       '26',       0.2188,	            0.0009573,		    'LO'],
+    ["Zto2Nu_PTNuNu-400to600_2J",       '26',       0.7816,	            0.005088,		    'LO'],
+    ["Zto2Nu_PTNuNu-600_1J",            '26',       0.02583,	        0.000108,		    'LO'],
+    ["Zto2Nu_PTNuNu-600_2J",            '26',       0.1311,	            0.0007098,		    'LO'],
+],
+}
+
+
+#----------------------------------------------------------------------------------------
+# [DO NOT TOUCH THIS PART]
+#----------------------------------------------------------------------------------------
+b_ds = {}
+for period in paths.keys():
 
     dti = period[0]
     year = period[-2:]
-    
-    DYPt50ToInf = [
-        ["DYJetsToLL_PtZ-50To100_"+period]           + [year+'0202'+dti, path+"DYJetsToLL_PtZ-50To100.txt"],
-        ["DYJetsToLL_PtZ-100To250_"+period]          + [year+'0203'+dti, path+"DYJetsToLL_PtZ-100To250.txt"],
-        ["DYJetsToLL_PtZ-250To400_"+period]          + [year+'0204'+dti, path+"DYJetsToLL_PtZ-250To400.txt"],
-        ["DYJetsToLL_PtZ-400To650_"+period]          + [year+'0205'+dti, path+"DYJetsToLL_PtZ-400To650.txt"],
-        ["DYJetsToLL_PtZ-650ToInf_"+period]          + [year+'0206'+dti, path+"DYJetsToLL_PtZ-650ToInf.txt"],
-    ]
-    
-    TTFullLep = [
-        ["TTTo2L2Nu_"+period]                        + [year+'0300'+dti, path+"TTTo2L2Nu.txt"],
-    ]
 
-    
-    if period == "0_22":
-        TTFullLep_0_22 = TTFullLep
-        DYPt50ToInf_0_22 = DYPt50ToInf
-    elif period == "1_22":
-        TTFullLep_1_22 = TTFullLep
-        DYPt50ToInf_1_22 = DYPt50ToInf
-    elif period == "0_23":
-        TTFullLep_0_23 = TTFullLep
-        DYPt50ToInf_0_23 = DYPt50ToInf
-    elif period == "1_23":
-        TTFullLep_1_23 = TTFullLep
-        DYPt50ToInf_1_23 = DYPt50ToInf
+    for key in b_ds_info.keys():
+        b_ds[key+"_"+period] = []
+        for ds in b_ds_info[key]:
+            list_temp = []
+            list_temp.append(ds[0]+"_"+period)
+            list_temp.append(ds[1]+year+dti)
+            list_temp.append(paths[period]+ds[0]+".txt")
+            list_temp.append(ds[2])
+            list_temp.append(ds[3])
+            b_ds[key+"_"+period].append(list_temp)
 
